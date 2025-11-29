@@ -1,137 +1,73 @@
-<!doctype html>
-<html lang="pt-BR">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Guugle — Busca da Zoera</title>
-  <style>
-    /* Estilo limpo e leve: inspirado, mas não copiado */
-    :root{ --bg:#ffffff; --muted:#6b6b6b; --accent:#1a73e8; --card:#f7f7f8 }
-    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial}
-    body{display:flex;align-items:flex-start;justify-content:center;background:linear-gradient(180deg,#fbfcff 0%, #ffffff 40%);padding:64px 16px}
-    .container{width:min(920px,96%);text-align:center}
-    .logo{font-weight:800;font-size:64px;letter-spacing:2px;margin-top:28px}
-    .logo .g1{color:#4285f4} .logo .u{color:#ea4335} .logo .g2{color:#fbbc05} .logo .l{color:#34a853} .logo .e{color:#8b5cf6}
-    /* Caixa de busca */
-    .searchCard{background:var(--card);border-radius:12px;padding:22px;margin:28px auto;box-shadow:0 6px 18px rgba(20,20,30,0.06)}
-    form.search{display:flex;gap:12px;align-items:center;max-width:760px;margin:0 auto}
-    input.q{flex:1;padding:14px 16px;border-radius:999px;border:1px solid #e6e6e6;font-size:18px;outline:none}
-    button.go{padding:10px 18px;border-radius:999px;border:none;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
-    .suggestions{max-width:760px;margin:8px auto 0;text-align:left}
-    .suggestion{padding:8px 12px;border-radius:6px;cursor:pointer}
-    .suggestion:hover{background:#eef6ff}
-    /* Resultados */
-    .results{margin-top:22px;text-align:left}
-    .result{padding:18px;border-radius:8px;background:#fff;border:1px solid #efefef;margin-bottom:12px}
-    .result .title{font-size:18px;font-weight:700}
-    .result .url{color:var(--muted);font-size:13px;margin-top:6px}
-    .small{font-size:13px;color:var(--muted)}
-    footer{margin-top:34px;color:var(--muted);font-size:13px}
-    @media (max-width:560px){.logo{font-size:44px}.searchCard{padding:16px}input.q{font-size:16px}}
-  </style>
+<title>Chatodroid - IA da Zueira</title>
+<style>
+body {background:#111;color:#0f0;font-family:Arial;text-align:center;margin:0;padding:0;}
+.chat {width:90%;max-width:600px;margin:20px auto;background:#222;padding:15px;border-radius:10px;}
+input {width:70%;padding:10px;margin-top:10px;}
+button {padding:10px;margin-left:5px;}
+#respostas {text-align:left;margin-top:20px;color:#0f0;}
+img,gif,video {max-width:100%;border-radius:5px;margin-top:10px;}
+</style>
 </head>
 <body>
-  <div class="container">
-    <div class="logo" aria-hidden="true">
-      <span class="g1">G</span><span class="u">u</span><span class="g2">u</span><span class="l">g</span><span class="e">l</span><span style="color:#111;font-weight:800">e</span>
-    </div>
 
-    <div class="searchCard" role="search">
-      <form class="search" onsubmit="performSearch(event)">
-        <input class="q" id="q" autocomplete="off" placeholder="Procure por coisas da zoeira, memes, nomes de bandas, receitas..." />
-        <button class="go" type="submit">Buscar</button>
-      </form>
+<h1>🤖 Chatodroid - Respostas Infinitas da Zueira</h1>
 
-      <div class="suggestions" id="suggestions" aria-live="polite"></div>
-      <div class="results" id="results"></div>
-    </div>
+<div class="chat">
+<input id="pergunta" placeholder="Escreve tua pergunta zoeira aqui">
+<button onclick="responder()">Perguntar</button>
+<button onclick="gerarImagem()">Gerar Imagem</button>
+<button onclick="gerarVideo()">Gerar Vídeo</button>
+<div id="respostas"></div>
+</div>
 
-    <footer>
-      Guugle é uma paródia — diversão apenas. Não é afiliado ao Google.
-    </footer>
-  </div>
+<script>
+// Função pra responder perguntas de zoeira
+function responder(){
+    let p = document.getElementById("pergunta").value.toLowerCase();
+    let r = "";
 
-  <script>
-    // Pequena "base de dados" de zoeira para respostas falsas
-    const jokes = [
-      {title: "Como fazer seu vizinho te devolver a bola", url: "guugle://memes/vizinho", snippet: "Coloque uma placa: 'divida-se com quem roubou a bola'"},
-      {title: "Top 10 nomes de carro que não existem", url: "guugle://list/carros", snippet: "Fuscaço, Golzão Turbo, Biroliro V12..."},
-      {title: "Receita: bolo de erva-doce que não é erva-doce", url: "guugle://food/bolo", snippet: "Misture suco de maracujá com 3 colheres de imaginação"},
-      {title: "Solução rápida: esconder o celular do seu irmão", url: "guugle://tips/esconder", snippet: "Dobre o celular e coloque dentro do livro 'Como não encontrar'"},
-      {title: "Manual de sobrevivência em roda de família", url: "guugle://guide/familia", snippet: "Leve fones, leve paciência e um prato de sobremesa"}
-      {title: "nomes para cachoros", url: "guugle://guide/nome pra cachoro", snippet: "destruidor de mundos,destruidor de planetas,pipoca queimada sem sal,pit bull sem bull"}
-    {title: "chat gpt", url: "guugle://guide/gpt", snippet: "mano voce acha mesmo q um site desses vai ter chat gpt kkkkk se liga man kkkkk"}
-    ];
+    // Zoando erros de digitação
+    p = p.replace(/[^\w\s]/g,''); // remove caracteres estranhos
 
-    const suggestionsList = ["meme do dia", "piada de tio", "como furar pneu? (brincadeira)", "nome para time de futebol", "receita sem forno"]
-
-    const q = document.getElementById('q')
-    const suggestions = document.getElementById('suggestions')
-    const results = document.getElementById('results')
-
-    // Mostrar sugestões simples enquanto o usuário digita
-    q.addEventListener('input', ()=>{
-      const v = q.value.trim().toLowerCase()
-      suggestions.innerHTML = ''
-      if(!v) return
-      const filtered = suggestionsList.filter(s=>s.includes(v) || v.includes(s.substring(0,3)))
-      const list = (filtered.length?filtered:suggestionsList).slice(0,5)
-      list.forEach(item=>{
-        const el = document.createElement('div')
-        el.className = 'suggestion'
-        el.textContent = item
-        el.onclick = ()=>{ q.value = item; performSearch(); }
-        suggestions.appendChild(el)
-      })
-    })
-
-    // Função principal: monta resultados fictícios
-    function performSearch(e){
-      if(e && e.preventDefault) e.preventDefault()
-      const query = q.value.trim()
-      results.innerHTML = ''
-      if(!query){ results.innerHTML = '<div class="small">Digite algo para começar a zoeira.</div>'; return }
-
-      // Gera 3 resultados baseados na query
-      const found = jokes.filter(j=> j.title.toLowerCase().includes(query.toLowerCase()) || j.snippet.toLowerCase().includes(query.toLowerCase()))
-      const pool = found.length? found : jokes
-      // embaralha e pega 3
-      const pick = shuffle(pool).slice(0,3)
-
-      pick.forEach(r=>{
-        const card = document.createElement('div')
-        card.className = 'result'
-        card.innerHTML = `<div class="title">${escapeHtml(r.title)}</div><div class="url">${escapeHtml(r.url)}</div><div class="snippet">${escapeHtml(r.snippet)}</div>`
-        results.appendChild(card)
-      })
-
-      // adiciona um resultado "especial" aleatório
-      const special = document.createElement('div')
-      special.className = 'result'
-      special.innerHTML = `<div class="title">Resultado secreto para "${escapeHtml(query)}"</div><div class="snippet">${escapeHtml(funFact(query))}</div>`
-      results.appendChild(special)
+    // Respostas de exemplo
+    if(p.includes("oi")) r="Eae irmão 😎 suave?";
+    else if(p.includes("quanto é") || p.includes("calculo") || p.includes("soma") || p.includes("multiplica")){
+        r = calcular(p);
     }
+    else if(p.includes("imagem")) r="Clique no botão 'Gerar Imagem' 🎨";
+    else if(p.includes("video")) r="Clique no botão 'Gerar Vídeo' 🎬";
+    else r="Não entendi, mas vou responder mesmo assim 😂: " + p;
 
-    function funFact(q){
-      const msgs = [
-        `Sabia que "${q}" é 97% imaginação e 3% Wi‑Fi?`,
-        `Dica: Se disser "${q}" alto, seu cachorro pode entender. Não garantimos nada.`,
-        `Lembre‑se: nunca confie numa busca que sorri para você.`
-      ]
-      return msgs[Math.floor(Math.random()*msgs.length)]
-    }
+    document.getElementById("respostas").innerHTML += "<p>"+r+"</p>";
+}
 
-    function shuffle(a){
-      return a.slice().sort(()=>Math.random()-0.5)
-    }
+// Função de cálculo passo a passo simples
+function calcular(texto){
+    try{
+        // extrai números e operadores simples
+        let numeros = texto.match(/\d+/g);
+        if(!numeros) return "Não achei números para calcular 😅";
+        let soma = 0;
+        for(let i=0;i<numeros.length;i++){soma += parseInt(numeros[i]);}
+        return "Soma dos números: " + numeros.join(" + ") + " = " + soma;
+    }catch(e){return "Erro no cálculo 😵";}
+}
 
-    function escapeHtml(s){
-      return String(s).replace(/[&<>\"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c]))
-    }
+// Função gerar imagem (exemplo)
+function gerarImagem(){
+    let url = "https://media.giphy.com/media/3o7TKtnuHOHHUjR38Y/giphy.gif"; // gif exemplo
+    document.getElementById("respostas").innerHTML += `<p>Imagem zoeira:</p><img src="${url}">`;
+}
 
-    // busca rápida ao carregar para demo
-    document.addEventListener('DOMContentLoaded', ()=>{ q.value = ''; results.innerHTML = '<div class="small">Digite algo e pressione Buscar — isto é só zoeira 😄</div>' })
-  </script>
+// Função gerar vídeo (exemplo)
+function gerarVideo(){
+    let url = "https://sample-videos.com/video123/mp4/240/big_buck_bunny_240p_1mb.mp4";
+    document.getElementById("respostas").innerHTML += `<p>Vídeo zoeira:</p><video controls src="${url}"></video>`;
+}
+</script>
+
 </body>
 </html>
-<img src="https://imgur.com/KVrjf16" alt="meme engrasado" width="300">
